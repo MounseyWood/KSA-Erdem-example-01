@@ -19,6 +19,7 @@
       height: 720px;
       background-size: cover;
       background-position: center;
+      background-repeat: no-repeat;
       cursor: grab;
     }
   </style>
@@ -39,7 +40,7 @@
 
     let isDragging = false;
     let startX = 0;
-    
+
     viewer.addEventListener('mousedown', (event) => {
       isDragging = true;
       startX = event.clientX;
@@ -63,6 +64,30 @@
         viewer.style.backgroundImage = `url('${images[currentIndex]}')`;
         startX = event.clientX;
       }
+    });
+
+    // Touch event support for iPhone/iPad
+    viewer.addEventListener('touchstart', (event) => {
+      isDragging = true;
+      startX = event.touches[0].clientX;
+    });
+
+    viewer.addEventListener('touchmove', (event) => {
+      if (!isDragging) return;
+      let deltaX = event.touches[0].clientX - startX;
+      if (Math.abs(deltaX) > 10) {
+        if (deltaX > 0) {
+          currentIndex = (currentIndex - 1 + imageCount) % imageCount;
+        } else {
+          currentIndex = (currentIndex + 1) % imageCount;
+        }
+        viewer.style.backgroundImage = `url('${images[currentIndex]}')`;
+        startX = event.touches[0].clientX;
+      }
+    });
+
+    viewer.addEventListener('touchend', () => {
+      isDragging = false;
     });
   </script>
 </body>
