@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Image Turntable Viewer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WebP Turntable Viewer</title>
   <style>
     body {
       margin: 0;
@@ -28,10 +28,10 @@
   <div class="viewer" id="viewer"></div>
 
   <script>
-    const imageCount = 360; // Total number of images
+    const imageCount = 360; // total number of images
     const images = [];
     for (let i = 0; i < imageCount; i++) {
-      images.push(`https://mounseywood.github.io/KSA-Erdem-example-01/webp-turntable/ERDEM_02_TURNTABLE_${i}.webp`);
+      images.push(`https://cdn.jsdelivr.net/gh/MounseyWood/KSA-Erdem-example-01@main/webp-turntable/ERDEM_02_TURNTABLE_${i}.webp`);
     }
 
     // Simple cache to store preloaded images
@@ -56,6 +56,7 @@
       preloadImage(currentIndex);
       preloadImage((currentIndex + 1) % imageCount);
       preloadImage((currentIndex - 1 + imageCount) % imageCount);
+
       // Set the background image using the preloaded image's src
       viewer.style.backgroundImage = `url('${images[currentIndex]}')`;
     }
