@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Image Turntable Viewer</title>
   <style>
     body {
@@ -28,45 +28,80 @@
   <div class="viewer" id="viewer"></div>
 
   <script>
-    const imageCount = 360; // Number of images in the sequence
+    const imageCount = 360; // Total number of images
     const images = [];
     for (let i = 0; i < imageCount; i++) {
       images.push(`https://mounseywood.github.io/KSA-Erdem-example-01/KSA-Erdem-example-turntable/ERDEM_02_TURNTABLE_${i}.png`);
     }
-    
+
+    // Simple cache to store preloaded images
+    const imageCache = {};
+
+    // Preload an image by its index
+    function preloadImage(index) {
+      if (!imageCache[index]) {
+        const img = new Image();
+        img.src = images[index];
+        imageCache[index] = img;
+      }
+    }
+
     let currentIndex = 0;
     const viewer = document.getElementById('viewer');
-    viewer.style.backgroundImage = `url('${images[currentIndex]}')`;
+
+    // Update the viewer's background and preload adjacent images
+    function updateImage(newIndex) {
+      currentIndex = newIndex;
+      // Preload current, next, and previous images
+      preloadImage(currentIndex);
+      preloadImage((currentIndex + 1) % imageCount);
+      preloadImage((currentIndex - 1 + imageCount) % imageCount);
+      // Set the background image using the preloaded image's src
+      viewer.style.backgroundImage = `url('${images[currentIndex]}')`;
+    }
+
+    // Initialize with the first image
+    updateImage(currentIndex);
 
     let isDragging = false;
     let startX = 0;
+    let isAnimating = false;
 
+    // Helper function to handle change based on deltaX
+    function handleDrag(deltaX, clientX) {
+      if (Math.abs(deltaX) > 10 && !isAnimating) {
+        isAnimating = true;
+        requestAnimationFrame(() => {
+          if (deltaX > 0) {
+            updateImage((currentIndex - 1 + imageCount) % imageCount);
+          } else {
+            updateImage((currentIndex + 1) % imageCount);
+          }
+          startX = clientX;
+          isAnimating = false;
+        });
+      }
+    }
+
+    // Mouse events
     viewer.addEventListener('mousedown', (event) => {
       isDragging = true;
       startX = event.clientX;
       viewer.style.cursor = 'grabbing';
     });
-    
+
     window.addEventListener('mouseup', () => {
       isDragging = false;
       viewer.style.cursor = 'grab';
     });
-    
+
     window.addEventListener('mousemove', (event) => {
       if (!isDragging) return;
-      let deltaX = event.clientX - startX;
-      if (Math.abs(deltaX) > 10) {
-        if (deltaX > 0) {
-          currentIndex = (currentIndex - 1 + imageCount) % imageCount;
-        } else {
-          currentIndex = (currentIndex + 1) % imageCount;
-        }
-        viewer.style.backgroundImage = `url('${images[currentIndex]}')`;
-        startX = event.clientX;
-      }
+      const deltaX = event.clientX - startX;
+      handleDrag(deltaX, event.clientX);
     });
 
-    // Touch event support for iPhone/iPad
+    // Touch events for mobile devices
     viewer.addEventListener('touchstart', (event) => {
       isDragging = true;
       startX = event.touches[0].clientX;
@@ -74,16 +109,8 @@
 
     viewer.addEventListener('touchmove', (event) => {
       if (!isDragging) return;
-      let deltaX = event.touches[0].clientX - startX;
-      if (Math.abs(deltaX) > 10) {
-        if (deltaX > 0) {
-          currentIndex = (currentIndex - 1 + imageCount) % imageCount;
-        } else {
-          currentIndex = (currentIndex + 1) % imageCount;
-        }
-        viewer.style.backgroundImage = `url('${images[currentIndex]}')`;
-        startX = event.touches[0].clientX;
-      }
+      const deltaX = event.touches[0].clientX - startX;
+      handleDrag(deltaX, event.touches[0].clientX);
     });
 
     viewer.addEventListener('touchend', () => {
